@@ -47,31 +47,26 @@ class BooksSpider(scrapy.Spider):
 
     def parse_book(self, response: Response) -> BookItem:
         """Parse individual book page."""
-        book = BookItem()
-
-        book["title"] = response.css("div.product_main h1::text").get()
-        book["price"] = (
-            response.css("p.price_color::text").get().replace("£", "")
-        )
+        title = response.css("div.product_main h1::text").get()
+        price = response.css("p.price_color::text").get().replace("£", "")
 
         stock_text = (
             response.css("p.instock.availability::text").getall()[1].strip()
         )
-        book["amount_in_stock"] = int(stock_text.split("(")[1].split()[0])
+        amount_in_stock = int(stock_text.split("(")[1].split()[0])
 
         rating_class = response.css("p.star-rating::attr(class)").get()
-        book["rating"] = word_to_num(rating_class.split()[-1].lower())
+        rating = word_to_num(rating_class.split()[-1].lower())
 
-        book["category"] = response.css(
-            "ul.breadcrumb li:nth-child(3) a::text"
-        ).get()
-        book["description"] = response.css(
-            "#product_description + p::text"
-        ).get()
-        book["upc"] = response.css(
+        category = response.css("ul.breadcrumb li:nth-child(3) a::text").get()
+        description = response.css("#product_description + p::text").get()
+        upc = response.css(
             "table.table-striped tr:nth-child(1) td::text"
         ).get()
 
+        book = BookItem(
+            title, price, amount_in_stock, rating, category, description, upc
+        )
         self.progress_bar.update(1)
 
         yield book
